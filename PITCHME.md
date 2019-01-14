@@ -151,7 +151,7 @@ class ThirdPartyClient extends EnrollmentEndpoints {
 ---
 
 ## Lawls ok but what's that convert function?
-<img src="https://media.giphy.com/media/12NUbkX6p4xOO4/giphy.gif" style="height: 100%; width: 100%;"/>
+<img src="https://media.giphy.com/media/12NUbkX6p4xOO4/giphy.gif" style="height: 65%; width: 65%;"/>
 ---
 
 ## J/K it's just an implicit
