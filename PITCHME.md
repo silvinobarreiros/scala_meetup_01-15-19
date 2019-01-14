@@ -151,12 +151,10 @@ class ThirdPartyClient extends EnrollmentEndpoints {
 ---
 
 ## Lawls ok but what's that convert function?
-<br>
-![Image-Abs](https://media.giphy.com/media/12NUbkX6p4xOO4/giphy.gif)
-<br>
+<img src="https://media.giphy.com/media/12NUbkX6p4xOO4/giphy.gif" style="height: 100%; width: 100%;"/>
 ---
 
-## Lawls ok but what's that convert function?
+## J/K it's just an implicit
 
 ```scala
 type SttpResponse[A] = Future[Response[Either[String, A]]]
