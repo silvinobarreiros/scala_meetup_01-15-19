@@ -1,7 +1,7 @@
 # Functional Patterns In Practice
 ---
 
-<img src="assets/eugene.jpg" style="height: 50%; width: 50%;"/>
+<img src="assets/eugene.jpg" style="height: 75%; width: 75%;"/>
 ---
 
 ## Who AMI
