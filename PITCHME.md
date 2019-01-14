@@ -64,7 +64,7 @@ Either
     {
       "code": 1,
       "namespace": "transferService",
-      "message": "Something went wrong with your bank. Please relink your bank account so you can complete your transfer."
+      "message": "Something went wrong with your transfer 😮"
     }
   ]
 }
