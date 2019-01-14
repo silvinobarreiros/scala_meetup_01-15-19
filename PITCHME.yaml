@@ -1,5 +1,5 @@
 stealth : stash
-highlight : pojoaque
+# highlight : pojoaque
 # highlight: solarized-light
 theme: moon
 # theme-override: assets/css/PITCHME.css
