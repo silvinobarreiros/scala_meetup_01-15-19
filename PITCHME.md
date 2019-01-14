@@ -28,7 +28,7 @@
 
 @ul
 
-- ```nulls``` 🙅🏻‍♂️
+- <pre><code>nulls</code></pre> 🙅🏻‍♂️
 - ```val``` > ```var```
 - avoid throwing exceptions.. for the most part
 - avoid `Unit`
