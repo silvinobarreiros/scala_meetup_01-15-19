@@ -30,6 +30,8 @@
 
 - ```nulls``` 🙅🏻‍♂️
 - ```val``` > ```var```
+- avoid throwing exceptions.. for the most part
+- avoid `Unit`
 
 @ulend
 
