@@ -26,8 +26,12 @@
 
 ## Things we do here
 
-@css[text fragment](`nulls` 🙅🏻‍♂️)
-@css[text fragment](`val` > `var`)
+@ul
+
+- ```nulls```` 🙅🏻‍♂️
+- ```val``` > ```var```
+
+@ulend
 
 ---
 
