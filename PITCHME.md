@@ -1,6 +1,9 @@
 # Functional Patterns In Practice
 ---
 
+<img src="assets/eugene.jpg" style="height: 50%; width: 50%;"/>
+---
+
 ## Who AMI
 
 * Lead Engineer @ Stash
