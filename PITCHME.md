@@ -280,41 +280,22 @@ trait Http {
 
 trait CardEndpoints extends Http {
 
-  def getCard(accountIdentifier: String, cardIdentifier: String): StashResponse[CardResponse] = {
+  def getCard(accountId: String, cardId: String): StashResponse[CardResponse] = {
     get[CardResponse](
       uri"https://www.supercoolservice.io/accounts/$accountIdentifier/cards/$cardIdentifier"
     )
   }
 
   def activateCard(
-    accountIdentifier: String,
-    cardInfo: DecryptedCard
-  ): StashResponse[ActivateCardResponse] = {
-    
-    val json = DecryptedCard.decryptedCardProtocol.write(cardInfo).compactPrint
-
-    val result = for {
-      cardPayload <- EitherT.fromEither[Future](encrypt(json).convertToErrorMessage(None))
-      
-      encryptedCard = cardPayload.encryptedData
-
-      activateCardRequest: ActivateCardRequest = ActivateCardRequest(encryptedCard)
-
-      sendResponse <- EitherT(
-        post[ActivateCardResponse, ActivateCardRequest](
-          uri"https://www.supercoolservice.io/accounts/$accountIdentifier/activateCard",
-          activateCardRequest
-        ))
-    } yield sendResponse
-
-    result.value
-  }
+    accountId: String, cardInfo: DecryptedCard
+  ): StashResponse[ActivateCardResponse] = ???
 }
 
 class ThirdPartyClient extends CardEndpoints {
-  protected def get[A: JsonReader](uri: Uri): StashResponse[A] = {
+  protected def post[A: JsonReader, B: JsonWriter](uri: Uri, body: B): StashResponse[A] = {
     auth { req =>
-      req.get(uri)
+      req.post(uri)
+        .body(body)
         .response(asJson[A])
         .send()
         .convert
@@ -325,9 +306,9 @@ class ThirdPartyClient extends CardEndpoints {
 
 @[1-5](yo dawg heard you like HTTP requests)
 @[2-4](use Future[Either[Error, A]])
-@[11-20](implementation time)
-@[15](serialize the response payload)
-@[17](convert to StashResponse)
+@[6-18](implementation time)
+@[20-30]
+@[27](convert to StashResponse)
 
 ---
 
