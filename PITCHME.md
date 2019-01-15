@@ -192,7 +192,7 @@ class UsersController(dependencies: Dependencies) extends LoggedController {
 @[12](request handler)
 ---
 
-## Our End of the World.. err beginning of the world 
+## EOW Continued.. 
 ```scala
 private def activate(
   userId: String, accountId: String, cardId: String, activateReq: ActivateReq
@@ -369,28 +369,25 @@ implicit class SttpConverter[A](sttpResponse: SttpResponse[A]) {
 ```scala
 private def activate(
   userId: String, accountId: String, cardId: String, activateReq: ActivateReq
-): Future[ToResponseMarshallable] = {
-  cardHandler.activate(userId, accountId, cardId, activateReq).map {
+): Future[ToResponseMarshallable] = 
+  cardHandler.activate(userId, accountId, cardId, activateReqs).map {
     case Left(error) => error.code match {
-      case FailedActivationError.code => ToResponseMarshallable(StatusCodes.BadRequest -> 
-        new ErrorResponse(Array(error.copy(code = ProviderError.code)))
-      )
-
-      case _ => ToResponseMarshallable(StatusCodes.BadRequest -> 
-        new ErrorResponse(Array(error))
-      )
+      case FailedActivationError.code => 
+        val activationError = ErrorResponse(error.copy(code = ProviderError.code))
+        ToResponseMarshallable(StatusCodes.BadRequest -> activationError)
+      case _ => 
+        ToResponseMarshallable(StatusCodes.BadRequest -> 
+          new ErrorResponse(error))
     }
-    case Right(cardActivateResponse) => ToResponseMarshallable(StatusCodes.OK -> 
-      cardActivateResponse
-    )
+    case Right(cardActivateResponse) => 
+      ToResponseMarshallable(StatusCodes.OK -> cardActivateResponse)
   }
-}
 ```
-@[4-17]
-@[5-13](handle errors)
-@[6-8](FailedActivationError explicitly)
+@[4-15]
+@[5-12](handle errors)
+@[7-9](FailedActivationError explicitly)
 @[10-12](all other errors)
-@[14-16](sometimes we can have nice things 😮)
+@[14-15](sometimes we can have nice things 😮)
 ---
 
 ## Questions
