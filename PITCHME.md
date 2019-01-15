@@ -377,7 +377,7 @@ private def activate(
   }
 ```
 @[4-15]
-@[5-12](handle errors)
+@[5-11](handle errors)
 @[6-8](FailedActivationError explicitly)
 @[9-10](all other errors)
 @[13-14](sometimes we can have nice things 😮)
