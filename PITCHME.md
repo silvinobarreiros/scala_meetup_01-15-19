@@ -143,6 +143,7 @@ case class Error(
 
 case object FailedActivationError extends ErrorCode(code = 9, message = "Failed to activate payment instrument")
 ```
+---
 
 ## Http w/sttp
 
