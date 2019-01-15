@@ -269,7 +269,7 @@ def saveCardActivatedEvent(
 
 ---
 
-## Using this with a 3rd party API
+## 3rd party APIs
 
 ```scala
 trait Http {
