@@ -98,7 +98,7 @@
 
 ## Example Time
 
-end user (phone) -->
+end user (phone)
 ---
 
 ## Example Time
@@ -196,23 +196,22 @@ class UsersController(dependencies: Dependencies) extends LoggedController {
 ```scala
 private def activate(
   userId: String, accountId: String, cardId: String, activateReq: ActivateReq
-): Future[ToResponseMarshallable] = {
-  cardHandler
-    .activate(userId, accountId, cardId, activateReq).map {
+): Future[ToResponseMarshallable] = cardHandler.activate(
+      userId, accountId, cardId, activateReq
+    ).map {
       case Left(error) => error.code match {
-        case FailedActivationError.code => ToResponseMarshallable(StatusCodes.BadRequest -> 
-          new ErrorResponse(Array(error.copy(code = ProviderError.code)))
-        )
-
+        case FailedActivationError.code => 
+          ToResponseMarshallable(StatusCodes.BadRequest -> 
+            new ErrorResponse(Array(error.copy(code = ProviderError.code)))
+          )
         case _ => ToResponseMarshallable(StatusCodes.BadRequest -> 
           new ErrorResponse(Array(error))
         )
       }
-      case Right(cardActivateResponse) => ToResponseMarshallable(StatusCodes.OK -> 
-        cardActivateResponse
-      )
-    }
-}
+    case Right(cardActivateResponse) => ToResponseMarshallable(StatusCodes.OK -> 
+      cardActivateResponse
+    )
+  }
 ```
 ---
 
