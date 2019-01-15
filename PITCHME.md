@@ -4,7 +4,7 @@
 <img src="assets/eugene.jpg" style="height: 85%; width: 85%;"/>
 ---
 
-## Who AMI
+## WhoAMI
 
 @ul
 
