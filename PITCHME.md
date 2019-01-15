@@ -343,7 +343,7 @@ implicit class SttpConverter[A](sttpResponse: SttpResponse[A]) {
 
 @[1](sttp alias)
 @[3](define implicit class on our sttp response type)
-@[4-17](convert method)
+@[4-16](convert method)
 @[6-15]
 @[7-14]
 @[8](2XX + can we parse the response)
