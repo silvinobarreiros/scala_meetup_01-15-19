@@ -94,8 +94,23 @@
 ## Example Time
 
 - trace a call through our bank platform to activate a new card
-
 ---
+
+## Example Time
+
+end user (phone) -->
+---
+
+## Example Time
+
+end user (phone) --> account service
+---
+
+## Example Time
+
+end user (phone) --> account service --> banking partner
+---
+
 
 ## But First Some Patterns
 ---
