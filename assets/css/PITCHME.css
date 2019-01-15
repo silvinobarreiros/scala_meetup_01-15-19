@@ -19,11 +19,13 @@ span.fa-byline { color : gray; }
 
 .reveal pre {
   width: 120%;
+  height: 120%;
   margin-left: -10%;
 }
 
 .reveal table {
   width: 130%;
+  height: 130%;
   margin-left: -15%;
 }
 
