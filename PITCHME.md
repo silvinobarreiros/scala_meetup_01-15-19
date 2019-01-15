@@ -332,8 +332,8 @@ implicit class SttpConverter[A](sttpResponse: SttpResponse[A]) {
         case Right(res) => res.left.map(Error(_))
         case Left(error) =>
           val responseDetails = parseAndExtractField(error, "responseDetails")
-          responseDetails.map(details => 
-            Left(Error(details.responseDetails))
+          responseDetails.map( 
+            details => Left(Error(details.responseDetails))
           ).joinRight
       }
     }
