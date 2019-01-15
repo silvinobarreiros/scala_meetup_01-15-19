@@ -243,6 +243,7 @@ def activate(
 @[14-15](failed 🤷🏻‍♂️)
 @[17-18](succeeded 🤷🏻‍♂️)
 @[24-25](card not active, return error)
+---
 
 ## EitherT + Cats
 
