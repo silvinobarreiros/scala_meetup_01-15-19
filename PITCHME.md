@@ -201,16 +201,13 @@ private def activate(
     ).map {
       case Left(error) => error.code match {
         case FailedActivationError.code => 
-          ToResponseMarshallable(StatusCodes.BadRequest -> 
-            new ErrorResponse(Array(error.copy(code = ProviderError.code)))
-          )
-        case _ => ToResponseMarshallable(StatusCodes.BadRequest -> 
-          new ErrorResponse(Array(error))
-        )
+          val activationError = new ErrorResponse(Array(error.copy(code = ProviderError.code)))
+          ToResponseMarshallable(StatusCodes.BadRequest -> activationError)
+        case _ => 
+          ToResponseMarshallable(StatusCodes.BadRequest -> new ErrorResponse(Array(error)))
       }
-    case Right(cardActivateResponse) => ToResponseMarshallable(StatusCodes.OK -> 
-      cardActivateResponse
-    )
+    case Right(cardActivateResponse) => 
+      ToResponseMarshallable(StatusCodes.OK -> cardActivateResponse)
   }
 ```
 ---
