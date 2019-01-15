@@ -161,9 +161,9 @@ class UsersController(dependencies: Dependencies) extends LoggedController {
       pathPrefix(cardRoute) { (userId, accountId, cardId) =>
         pathPrefix("activate") {
           // PUT /users/:userId/accounts/:accountId/cards/:cardId/activate
-          putLoggedAuthorized(userId, accountId)(CardActivateRequest.jsonFormat) { 
-            cardActivateRequest =>
-              complete(activate(userId, accountId, cardId, cardActivateRequest))
+          putLoggedAuthorized(userId, accountId)(ActivateRequest.jsonFormat
+            activateReq =>
+              complete(activate(userId, accountId, cardId, activateReq))
           }
         }
       }
@@ -178,55 +178,44 @@ class UsersController(dependencies: Dependencies) extends LoggedController {
 ## Our End of the World.. err beginning of the world 
 ```scala
 private def activate(
-  userId: String, accountId: String, 
-  cardId: String, cardActivateRequest: CardActivateRequest
+  userId: String, accountId: String, cardId: String, activateReq: ActivateReq
 ): Future[ToResponseMarshallable] = {
   cardHandler
-    .activate(userId, accountId, cardId, cardActivateRequest).map {
-      case Left(error) =>
-        error.code match {
-          case FailedActivationError.code => ToResponseMarshallable(
-            StatusCodes.BadRequest -> new ErrorResponse(Array(error.copy(code = ProviderError.code)))
-          )
+    .activate(userId, accountId, cardId, activateReq).map {
+      case Left(error) => error.code match {
+        case FailedActivationError.code => ToResponseMarshallable(StatusCodes.BadRequest -> 
+          new ErrorResponse(Array(error.copy(code = ProviderError.code)))
+        )
 
-          case _ => ToResponseMarshallable(
-            StatusCodes.BadRequest -> new ErrorResponse(Array(error))
-          )
-        }
-
-      case Right(cardActivateResponse) => ToResponseMarshallable(
-        StatusCodes.OK -> cardActivateResponse
+        case _ => ToResponseMarshallable(StatusCodes.BadRequest -> 
+          new ErrorResponse(Array(error))
+        )
+      }
+      case Right(cardActivateResponse) => ToResponseMarshallable(StatusCodes.OK -> 
+        cardActivateResponse
       )
     }
 }
 ```
-
 ---
 
 ## Business Time
 
 ```scala
 def activate(
-  stashUserUUID: String,
-  stashAccountUUID: String,
-  stashCardUUID: String,
-  cardActivateRequest: CardActivateRequest
+  userId: String, accountId: String, cardId: String, activateReq: ActivateReq
 ): StashResponse[errors.Error, CardActivateResponse] = {
   
   val result = for {
-    response <- EitherT(cardService.activate(stashAccountUUID, stashCardUUID, cardActivateRequest))
+    response <- EitherT(cardService.activate(accountId, cardId, activateReq))
   } yield {
 
     response.card.activationStatus match {
       case ActivationStatus.Activated =>
-        saveCardActivatedEvent(stashUserUUID, stashAccountUUID, stashCardUUID).foreach {
-          case Left(error) =>
-            logger.error(s"Failed to save card activation event for card: $stashCardUUID")
-
-          case Right(_) => 
-            logger.info(s"Successfully saved card activation event for card: $stashCardUUID")
+        saveCardActivatedEvent(userId, accountId, cardId).foreach {
+          case Left(error) => logger.error(s"Failed message")
+          case Right(_) => logger.info(s"Successfully saved message")
         }
-
         response
       
       case _ =>
@@ -238,25 +227,25 @@ def activate(
 }
 ```
 
-@[9](make a request to a 3rd party)
-@[12-26](check the card status)
-@[13](siiick activated, save an event to be published later)
-@[14-15](failed 🤷🏻‍♂️)
-@[17-18](succeeded 🤷🏻‍♂️)
-@[24-25](card not active, return error)
+@[6](make a request to a 3rd party)
+@[9-19](check the card status)
+@[11](siiick activated, save an event to be published later)
+@[12](failed 🤷🏻‍♂️)
+@[13](succeeded 🤷🏻‍♂️)
+@[17-18](card not active, return error)
 ---
 
 ## EitherT + Cats
 
 ```scala
 def saveCardActivatedEvent(
-  stashUserUUID: String,
-  stashAccountUUID: String,
-  stashCardUUID: String
+  userId: String,
+  accountId: String,
+  cardId: String
 ): StashResponse[Error, DBEvent] = {
 
   val result = for {
-    card <- EitherT(cardService.getCard(stashAccountUUID, stashCardUUID))
+    card <- EitherT(cardService.getCard(accountId, cardId))
 
     eventOption = card.card.activatedDateTime.map { activatedDateTime =>
       createEvent(activatedDateTime, card.card.`type`)
@@ -264,7 +253,7 @@ def saveCardActivatedEvent(
     
     event <- EitherT.fromOption[Future](
       eventOption,
-      AmaErrorObject(s"Card: $stashCardUUID was returned with missing activatedDateTime")
+      AmaErrorObject(s"Card: $cardId was returned with missing activatedDateTime")
     )
     
     dbEvent <- EitherT(eventsRepository.saveEvent(event).convert)
@@ -362,16 +351,9 @@ implicit class SttpConverter[A](sttpResponse: SttpResponse[A]) {
     sttpResponse.map { response =>
       response.body match {
         case Right(res) => res.left.map(Error(_))
-        
         case Left(error) =>
-          val responseDetails = 
-            parseAndExtractField(
-              error, "responseDetails"
-            )(ResponseDetailsWrapper.responseDetailsWrapperProtocol)
-          
-          responseDetails
-            .map(details => Left(Error(details.responseDetails)))
-            .joinRight
+          val responseDetails = parseAndExtractField(error, "responseDetails")
+          responseDetails.map(details => Left(Error(details.responseDetails))).joinRight
       }
     }
   }
@@ -380,11 +362,11 @@ implicit class SttpConverter[A](sttpResponse: SttpResponse[A]) {
 
 @[1](sttp alias)
 @[3](define implicit class on our sttp response type)
-@[4-21]
-@[7](map over the `Future`)
-@[8-20]
-@[9](2XX + can we parse the response)
-@[10-18](not 2XX try to parse the error payload)
+@[4-14]
+@[6](map over the `Future`)
+@[8-13]
+@[8](2XX + can we parse the response)
+@[9-11](not 2XX try to parse the error payload)
 
 ---
 
@@ -392,35 +374,28 @@ implicit class SttpConverter[A](sttpResponse: SttpResponse[A]) {
 
 ```scala
 private def activate(
-  userId: String,
-  accountId: String,
-  cardId: String,
-  cardActivateRequest: CardActivateRequest
+  userId: String, accountId: String, cardId: String, activateReq: ActivateReq
 ): Future[ToResponseMarshallable] = {
-  cardHandler
-    .activate(userId, accountId, cardId, cardActivateRequest)
-    .map {
-      case Left(error) =>
-        error.code match {
-          case FailedActivationError.code =>
-            ToResponseMarshallable(
-              StatusCodes.BadRequest -> new ErrorResponse(Array(error.copy(code = ProviderError.code)))
-            )
+  cardHandler.activate(userId, accountId, cardId, activateReq).map {
+    case Left(error) => error.code match {
+      case FailedActivationError.code => ToResponseMarshallable(StatusCodes.BadRequest -> 
+        new ErrorResponse(Array(error.copy(code = ProviderError.code)))
+      )
 
-          case _ =>
-            ToResponseMarshallable(StatusCodes.BadRequest -> new ErrorResponse(Array(error)))
-        }
-
-      case Right(cardActivateResponse) =>
-        ToResponseMarshallable(StatusCodes.OK -> cardActivateResponse)
+      case _ => ToResponseMarshallable(StatusCodes.BadRequest -> 
+        new ErrorResponse(Array(error))
+      )
     }
+    case Right(cardActivateResponse) => ToResponseMarshallable(StatusCodes.OK -> 
+      cardActivateResponse
+    )
+  }
 }
 ```
 
-@[12-15](handle FailedActivationError explicitly)
-@[17-18](all other errors)
-@[21-22](sometimes we can have nice things 😮)
-
+@[6-8](handle FailedActivationError explicitly)
+@[10-12](all other errors)
+@[14-16](sometimes we can have nice things 😮)
 ---
 
 ## Questions
