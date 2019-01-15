@@ -260,7 +260,7 @@ def saveCardActivatedEvent(
   val result = for {
     card        <- EitherT(cardService.getCard(accountId, cardId))
     eventOption = card.activatedDateTime.map(adt => createEvent(adt, card.`type`))
-    event       <- EitherT.fromOption[Future](eventOption, Error("missing activatedDateTime"))
+    event       <- EitherT.fromOption[Future](eventOption, Error("error"))
     dbEvent     <- EitherT(eventsRepository.saveEvent(event).convert)
   } yield dbEvent
 
