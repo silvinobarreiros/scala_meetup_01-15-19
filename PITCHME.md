@@ -124,7 +124,7 @@ package object platform {
 }
 ```
 
-@[2](any IO operation)
+@[2](any io operation)
 @[3](services with client facing APIs)
 ---
 
@@ -212,7 +212,7 @@ private def activate(
 ```
 ---
 
-## Business Time
+## Business Time (Card Handler)
 
 ```scala
 def activate(
@@ -232,7 +232,12 @@ def activate(
         response
       
       case _ =>
-        Left(Error(FailedActivationError.code, ErrorHandling.NAMESPACE, FailedActivationError.message))
+        Left(
+          Error(
+            FailedActivationError.code,
+            ErrorHandling.NAMESPACE, 
+            FailedActivationError.message
+          ))
     }
   }
 
@@ -245,7 +250,7 @@ def activate(
 @[11-14](siiick activated, save an event to be published later)
 @[12](failed 🤷🏻‍♂️)
 @[13](succeeded 🤷🏻‍♂️)
-@[17-18](card not active, return error)
+@[17-23](card not active, return error)
 ---
 
 ## EitherT + Cats
