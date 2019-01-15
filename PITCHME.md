@@ -196,9 +196,7 @@ class UsersController(dependencies: Dependencies) extends LoggedController {
 ```scala
 private def activate(
   userId: String, accountId: String, cardId: String, activateReq: ActivateReq
-): Future[ToResponseMarshallable] = cardHandler.activate(
-      userId, accountId, cardId, activateReq
-    ).map {
+): Future[ToResponseMarshallable] = cardHandler.activate(userId, accountId, cardId, activateReqs  ).map {
       case Left(error) => error.code match {
         case FailedActivationError.code => 
           val activationError = new ErrorResponse(
