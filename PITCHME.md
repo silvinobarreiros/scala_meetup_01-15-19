@@ -58,8 +58,12 @@
 
 ## Avoiding nulls
 
+@ul
+
 - Either[Error, Result] 🙌🏼
 - Either > Option
+
+@ulend
 ---
 
 ## Throwing Exceptions 👎🏼
