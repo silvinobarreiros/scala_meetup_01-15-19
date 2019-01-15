@@ -14,46 +14,98 @@
 ---
 
 ## @pugsnaps on IG
-<img src="assets/diesel.jpg" style="height: 35%; width: 35%;"/>
+<img src="assets/diesel.jpg" style="height: 40%; width: 40%;"/>
 ---
 
-## Sooooo What's This In Practice Thing?
-
-* Engineering at a start-up
-* Balancing monuments and speed
-* Subset of features
-* On-boarding new developers
-
----
-
-## Things we do here
+## Agenda
 
 @ul
 
-- `nulls` 🙅🏻‍♂️
-- `val` > `var`
-- don't throw exceptions.. for the most part
-- avoid `Unit`
+- chat a bit about "fp in rl"
+- patterns we follow at Stash
+- example use case from our bank product
 
 @ulend
 
 ---
 
-## Handling IO
+## Sooooo What's This In Practice Thing?
+
+@ul
+
+- engineering at a start-up
+- balancing monuments and speed
+- subset of features
+- on-boarding new developers
+
+@ulend
+
 ---
+
+## Things we do/don't do here
+
+@ul
+
+- do... 🙅🏻‍♂ `nulls` ️
+- do... favor `val` over `var`
+- don't... throw exceptions, for the most part
+- do... avoid `Unit`
+- do... use implicits to help readability, within reason
+
+@ulend
+
+---
+
+## Avoiding nulls
+
+- Either[Error, Result] 🙌🏼
+- Either > Option
+---
+
+## Throwing Exceptions 👎🏼
+@ul
+
+- *cough* Either[Error, Result] *cough*
+- function completeness (good for testing)
+- buuut not pure
+
+@ulend
+---
+
+<img src="https://media.giphy.com/media/12BxzBy3K0lsOs/giphy.gif" style="height: 50%; width: 50%;"/>
+___
 
 ## End of the world
 
-* the end of our world is often a controller
-* status codes + meaningful error messages
+@ul
+
+- not really the haskell io eow
+- more like a REST controller
+- status codes + meaningful error messages
+
+@ulend
+---
+
+## Example Time
+
+- trace a call through our bank platform to activate a new card
 
 ---
 
-## When the bad things happen
+## But First Some Patterns
 ---
 
-## When the bad things happen
-Either
+## Handling IO + Errors
+
+```scala
+package object platform {
+  type StashResponse[A, B] = Future[Either[A, B]]
+  type StashServiceResponse[A] = Future[Either[ErrorResponse, A]]
+}
+```
+
+@[2](any IO operation)
+@[3](services with client facing APIs)
 ---
 
 ## When the bad things happen
@@ -76,22 +128,18 @@ Either
 @[6](message for the user 🤗)
 ---
 
-## When the bad things happen
+## Error case class
 
 ```scala
-package object platform {
-  type StashResponse[A, B] = Future[Either[A, B]]
-  type StashServiceResponse[A] = Future[Either[ErrorResponse, A]]
-}
+case class Error(
+  code: Int,
+  namespace: String,
+  message: String,
+  description: Option[String]
+)
+
+case object FailedActivationError extends ErrorCode(code = 9, message = "Failed to activate payment instrument")
 ```
-
-@[2](any IO operation)
-@[3](services with client facing APIs)
-
----
-
-## EitherT + Cats
----
 
 ## Http w/sttp
 
@@ -99,18 +147,134 @@ package object platform {
 - error codes are `Left`s 🙏🏼
 ---
 
-## Using this with a 3rd party API
+## Our End of the World.. err beginning of the world 
 
-```json
-{
-  "responseDetails": [{
-    "code": 0,
-    "subCode": 0,
-    "description": "Success",
-    "url": "http://tbd"
-  }]
+```scala
+class UsersController(dependencies: Dependencies) extends LoggedController {
+  
+  val cardRoute = "users" / userId / "accounts" / accountId / "cards" / cardId
+
+  def routes: Route =
+    routeHandler {
+      pathPrefix(cardRoute) { (userId, accountId, cardId) =>
+        pathPrefix("activate") {
+          // PUT /users/:userId/accounts/:accountId/cards/:cardId/activate
+          putLoggedAuthorized(userId, accountId)(CardActivateRequest.jsonFormat) { 
+            cardActivateRequest =>
+              complete(activate(userId, accountId, cardId, cardActivateRequest))
+          }
+        }
+      }
+    }
+
+  private def activate(
+    userId: String,
+    accountId: String,
+    cardId: String,
+    cardActivateRequest: CardActivateRequest
+  ): Future[ToResponseMarshallable] = {
+    cardHandler
+      .activate(userId, accountId, cardId, cardActivateRequest)
+      .map {
+        case Left(error) =>
+          error.code match {
+            case FailedActivationError.code =>
+              ToResponseMarshallable(
+                StatusCodes.BadRequest -> new ErrorResponse(Array(error.copy(code = ProviderError.code)))
+              )
+
+            case _ =>
+              ToResponseMarshallable(StatusCodes.BadRequest -> new ErrorResponse(Array(error)))
+          }
+
+        case Right(cardActivateResponse) =>
+          ToResponseMarshallable(StatusCodes.OK -> cardActivateResponse)
+      }
+  }
 }
 ```
+
+@[5-16](route handler)
+@[12](request handler)
+@[18-41](we'll come back to this)
+
+---
+
+## Business Time
+
+```scala
+def activate(
+  stashUserUUID: String,
+  stashAccountUUID: String,
+  stashCardUUID: String,
+  cardActivateRequest: CardActivateRequest
+): StashResponse[errors.Error, CardActivateResponse] = {
+  
+  val result = for {
+    response <- EitherT(cardService.activate(stashAccountUUID, stashCardUUID, cardActivateRequest))
+  } yield {
+
+    response.card.activationStatus match {
+      case ActivationStatus.Activated =>
+        saveCardActivatedEvent(stashUserUUID, stashAccountUUID, stashCardUUID).foreach {
+          case Left(error) =>
+            logger.error(s"Failed to save card activation event for card: $stashCardUUID")
+
+          case Right(_) => 
+            logger.info(s"Successfully saved card activation event for card: $stashCardUUID")
+        }
+
+        response
+      
+      case _ =>
+        Left(Error(FailedActivationError.code, ErrorHandling.NAMESPACE, FailedActivationError.message))
+    }
+  }
+
+  result.value
+}
+```
+
+@[9](make a request to a 3rd party)
+@[12-26](check the card status)
+@[13](siiick activated, save an event to be published later)
+@[14-15](failed 🤷🏻‍♂️)
+@[17-18](succeeded 🤷🏻‍♂️)
+@[24-25](card not active, return error)
+
+## EitherT + Cats
+
+```scala
+def saveCardActivatedEvent(
+  stashUserUUID: String,
+  stashAccountUUID: String,
+  stashCardUUID: String
+): StashResponse[Error, DBEvent] = {
+
+  val result = for {
+    card <- EitherT(cardService.getCard(stashAccountUUID, stashCardUUID))
+
+    eventOption = card.card.activatedDateTime.map { activatedDateTime =>
+      createEvent(activatedDateTime, card.card.`type`)
+    }
+    
+    event <- EitherT.fromOption[Future](
+      eventOption,
+      AmaErrorObject(s"Card: $stashCardUUID was returned with missing activatedDateTime")
+    )
+    
+    dbEvent <- EitherT(eventsRepository.saveEvent(event).convert)
+  } yield dbEvent
+
+  result.value
+}
+```
+
+@[8](get card from 3rd party)
+@[10-12](make our event)
+@[14-17](convert from Option to Either)
+@[19](save to db, and convert the error)
+
 ---
 
 ## Using this with a 3rd party API
@@ -118,15 +282,44 @@ package object platform {
 ```scala
 trait Http {
   protected def get[A: JsonReader](uri: Uri): StashResponse[A]
+
+  protected def post[A: JsonReader, B: JsonWriter](uri: Uri, body: B): StashResponse[A]
 }
 
-trait EnrollmentEndpoints extends Http {
-  def getEnrollment(accountIdentifier: String): StashResponse[GetEnrollmentResponse] = {
-    get[GetEnrollmentResponse](uri"https://www.supercoolservice.io/enrollments/")
+trait CardEndpoints extends Http {
+
+  def getCard(accountIdentifier: String, cardIdentifier: String): StashResponse[CardResponse] = {
+    get[CardResponse](
+      uri"https://www.supercoolservice.io/accounts/$accountIdentifier/cards/$cardIdentifier"
+    )
+  }
+
+  def activateCard(
+    accountIdentifier: String,
+    cardInfo: DecryptedCard
+  ): StashResponse[ActivateCardResponse] = {
+    
+    val json = DecryptedCard.decryptedCardProtocol.write(cardInfo).compactPrint
+
+    val result = for {
+      cardPayload <- EitherT.fromEither[Future](encrypt(json).convertToErrorMessage(None))
+      
+      encryptedCard = cardPayload.encryptedData
+
+      activateCardRequest: ActivateCardRequest = ActivateCardRequest(encryptedCard)
+
+      sendResponse <- EitherT(
+        post[ActivateCardResponse, ActivateCardRequest](
+          uri"https://www.supercoolservice.io/accounts/$accountIdentifier/activateCard",
+          activateCardRequest
+        ))
+    } yield sendResponse
+
+    result.value
   }
 }
 
-class ThirdPartyClient extends EnrollmentEndpoints {
+class ThirdPartyClient extends CardEndpoints {
   protected def get[A: JsonReader](uri: Uri): StashResponse[A] = {
     auth { req =>
       req.get(uri)
@@ -180,9 +373,49 @@ implicit class SttpConverter[A](sttpResponse: SttpResponse[A]) {
   }
 }
 ```
+
+@[1](sttp alias)
+@[3](define implicit class on our sttp response type)
+@[4-21]
+@[7](map over the `Future`)
+@[8-20]
+@[9](2XX + can we parse the response)
+@[10-18](not 2XX try to parse the error payload)
+
 ---
 
-EitherT
+## Back to the end of the world
+
+```scala
+private def activate(
+  userId: String,
+  accountId: String,
+  cardId: String,
+  cardActivateRequest: CardActivateRequest
+): Future[ToResponseMarshallable] = {
+  cardHandler
+    .activate(userId, accountId, cardId, cardActivateRequest)
+    .map {
+      case Left(error) =>
+        error.code match {
+          case FailedActivationError.code =>
+            ToResponseMarshallable(
+              StatusCodes.BadRequest -> new ErrorResponse(Array(error.copy(code = ProviderError.code)))
+            )
+
+          case _ =>
+            ToResponseMarshallable(StatusCodes.BadRequest -> new ErrorResponse(Array(error)))
+        }
+
+      case Right(cardActivateResponse) =>
+        ToResponseMarshallable(StatusCodes.OK -> cardActivateResponse)
+    }
+}
+```
+
+@[12-15](handle FailedActivationError explicitly)
+@[17-18](all other errors)
+@[21-22](sometimes we can have nice things 😮)
 
 ---
 
