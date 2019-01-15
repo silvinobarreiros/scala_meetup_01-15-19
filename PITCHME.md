@@ -231,13 +231,11 @@ def activate(
         }
         response
       
-      case _ =>
-        Left(
-          Error(
-            FailedActivationError.code,
-            ErrorHandling.NAMESPACE, 
-            FailedActivationError.message
-          ))
+      case _ => Left(Error(
+        FailedActivationError.code,
+        ErrorHandling.NAMESPACE, 
+        FailedActivationError.message
+      ))
     }
   }
 
@@ -246,11 +244,11 @@ def activate(
 ```
 
 @[6](make a request to a 3rd party)
-@[9-23](check the card status)
+@[9-21](check the card status)
 @[11-14](siiick activated, save an event to be published later)
 @[12](failed 🤷🏻‍♂️)
 @[13](succeeded 🤷🏻‍♂️)
-@[17-23](card not active, return error)
+@[17-21](card not active, return error)
 ---
 
 ## EitherT + Cats
