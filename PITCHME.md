@@ -6,11 +6,13 @@
 
 ## Who AMI
 
-* Lead Engineer @ Stash
+@ul
 
-* Pug Enthusiast
+- Lead Engineer @ Stash
+- Pug Enthusiast
+- C -> Java -> C# -> Java -> Scala
 
-* C -> Java -> C# -> Java -> Scala
+@ulend
 ---
 
 ## @pugsnaps on IG
