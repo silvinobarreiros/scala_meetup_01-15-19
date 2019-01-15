@@ -78,6 +78,7 @@
 
 <img src="https://media.giphy.com/media/12BxzBy3K0lsOs/giphy.gif" style="height: 50%; width: 50%;"/>
 ___
+---
 
 ## End of the world
 
