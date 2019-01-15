@@ -325,9 +325,8 @@ class ThirdPartyClient extends CardEndpoints {
 }
 ```
 
-@[1-3](yo dawg heard you like HTTP requests)
-@[2](use Future[Either[Error, A]])
-@[4-8](cool now we have some CRUD operations.. err well one)
+@[1-5](yo dawg heard you like HTTP requests)
+@[2-4](use Future[Either[Error, A]])
 @[11-20](implementation time)
 @[15](serialize the response payload)
 @[17](convert to StashResponse)
