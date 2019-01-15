@@ -332,7 +332,9 @@ implicit class SttpConverter[A](sttpResponse: SttpResponse[A]) {
         case Right(res) => res.left.map(Error(_))
         case Left(error) =>
           val responseDetails = parseAndExtractField(error, "responseDetails")
-          responseDetails.map(details => Left(Error(details.responseDetails))).joinRight
+          responseDetails.map(details => 
+            Left(Error(details.responseDetails))
+          ).joinRight
       }
     }
   }
@@ -342,10 +344,10 @@ implicit class SttpConverter[A](sttpResponse: SttpResponse[A]) {
 @[1](sttp alias)
 @[3](define implicit class on our sttp response type)
 @[4-14](covnert method)
-@[6-13]
-@[7-12]
+@[6-15]
+@[7-14]
 @[8](2XX + can we parse the response)
-@[9-11](not 2XX try to parse the error payload)
+@[9-13](not 2XX try to parse the error payload)
 
 ---
 
