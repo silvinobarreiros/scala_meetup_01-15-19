@@ -114,10 +114,14 @@ end user (phone) --> account service --> banking partner
 
 ## Our Stack
 
+@ul
+
 - micro services + akka
 - aws
 - sttp
 - doobie
+
+@ulend
 ---
 
 ## And Some Patterns We Use
@@ -170,8 +174,12 @@ case class Error(
 
 ## Http w/sttp
 
+@ul
+
 - sttp 😍
 - error codes are `Left`s 🙏🏼
+
+@ulend
 ---
 
 ## Our End of the World.. err beginning of the world 
