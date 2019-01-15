@@ -170,10 +170,8 @@ class UsersController(dependencies: Dependencies) extends LoggedController {
     }
 
   private def activate(
-    userId: String,
-    accountId: String,
-    cardId: String,
-    cardActivateRequest: CardActivateRequest
+    userId: String, accountId: String, 
+    cardId: String, cardActivateRequest: CardActivateRequest
   ): Future[ToResponseMarshallable] = {
     cardHandler
       .activate(userId, accountId, cardId, cardActivateRequest)
@@ -198,7 +196,7 @@ class UsersController(dependencies: Dependencies) extends LoggedController {
 
 @[5-16](route handler)
 @[12](request handler)
-@[18-41](we'll come back to this)
+@[18-39](we'll come back to this)
 
 ---
 
