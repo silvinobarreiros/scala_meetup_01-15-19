@@ -112,7 +112,15 @@ end user (phone) --> account service --> banking partner
 ---
 
 
-## But First Some Patterns
+## Our Stack
+
+- micro services + akka
+- aws
+- sttp
+- doobie
+---
+
+## And Some Patterns We Use
 ---
 
 ## Handling IO + Errors
