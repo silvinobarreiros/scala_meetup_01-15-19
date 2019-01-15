@@ -248,7 +248,7 @@ def activate(
 @[11-14](siiick activated, save an event to be published later)
 @[12](failed 🤷🏻‍♂️)
 @[13](succeeded 🤷🏻‍♂️)
-@[17-21](card not active, return error)
+@[17-22](card not active, return error)
 ---
 
 ## EitherT + Cats
