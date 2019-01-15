@@ -229,7 +229,7 @@ def activate(
 
 @[6](make a request to a 3rd party)
 @[9-19](check the card status)
-@[11](siiick activated, save an event to be published later)
+@[11-14](siiick activated, save an event to be published later)
 @[12](failed 🤷🏻‍♂️)
 @[13](succeeded 🤷🏻‍♂️)
 @[17-18](card not active, return error)
