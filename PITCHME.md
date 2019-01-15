@@ -267,6 +267,7 @@ def saveCardActivatedEvent(
 @[10-12](make our event)
 @[14-17](convert from Option to Either)
 @[19](save to db, and convert the error)
+@[22](move back to Either)
 
 ---
 
