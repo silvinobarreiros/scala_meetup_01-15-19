@@ -370,8 +370,7 @@ private def activate(
         val activationError = ErrorResponse(error.copy(code = ProviderError.code))
         ToResponseMarshallable(StatusCodes.BadRequest -> activationError)
       case _ => 
-        ToResponseMarshallable(StatusCodes.BadRequest -> 
-          new ErrorResponse(error))
+        ToResponseMarshallable(StatusCodes.BadRequest -> new ErrorResponse(error))
     }
     case Right(cardActivateResponse) => 
       ToResponseMarshallable(StatusCodes.OK -> cardActivateResponse)
@@ -380,7 +379,7 @@ private def activate(
 @[4-15]
 @[5-12](handle errors)
 @[6-8](FailedActivationError explicitly)
-@[9-11](all other errors)
+@[9-10](all other errors)
 @[13-14](sometimes we can have nice things 😮)
 ---
 
