@@ -289,7 +289,7 @@ trait CardEndpoints extends Http {
 
   def getCard(accountId: String, cardId: String): StashResponse[CardResponse] = {
     get[CardResponse](
-      uri"https://www.supercoolservice.io/accounts/$accountIdentifier/cards/$cardIdentifier"
+      uri"https://www.coolservice.io/accounts/$accountId/cards/$cardId"
     )
   }
 
