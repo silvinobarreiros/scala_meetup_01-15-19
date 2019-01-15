@@ -258,30 +258,21 @@ def saveCardActivatedEvent(
   userId: String, accountId: String, cardId: String
 ): StashResponse[Error, DBEvent] = {
   val result = for {
-    card <- EitherT(cardService.getCard(accountId, cardId))
-
-    eventOption = card.card.activatedDateTime.map { activatedDateTime =>
-      createEvent(activatedDateTime, card.card.`type`)
-    }
-    
-    event <- EitherT.fromOption[Future](
-      eventOption,
-      Error(s"Card: $cardId was returned with missing activatedDateTime")
-    )
-    
-    dbEvent <- EitherT(eventsRepository.saveEvent(event).convert)
+    card        <- EitherT(cardService.getCard(accountId, cardId))
+    eventOption = card.activatedDateTime.map(adt => createEvent(adt, card.`type`))
+    event       <- EitherT.fromOption[Future](eventOption, Error("missing activatedDateTime"))
+    dbEvent     <- EitherT(eventsRepository.saveEvent(event).convert)
   } yield dbEvent
 
   result.value
 }
 ```
 
-@[4-17](get card from 3rd party)
 @[5](get card from 3rd party)
-@[7-9](make our event)
-@[11-14](convert from Option to Either)
-@[16](save to db, and convert the error)
-@[19](move back to Either)
+@[6](make our event)
+@[7](convert from Option to Either)
+@[8](save to db, and convert the error)
+@[11](move back to Either)
 
 ---
 
