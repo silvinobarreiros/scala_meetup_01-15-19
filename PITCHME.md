@@ -168,35 +168,38 @@ class UsersController(dependencies: Dependencies) extends LoggedController {
         }
       }
     }
-
-  private def activate(
-    userId: String, accountId: String, 
-    cardId: String, cardActivateRequest: CardActivateRequest
-  ): Future[ToResponseMarshallable] = {
-    cardHandler
-      .activate(userId, accountId, cardId, cardActivateRequest)
-      .map {
-        case Left(error) =>
-          error.code match {
-            case FailedActivationError.code =>
-              ToResponseMarshallable(
-                StatusCodes.BadRequest -> new ErrorResponse(Array(error.copy(code = ProviderError.code)))
-              )
-
-            case _ =>
-              ToResponseMarshallable(StatusCodes.BadRequest -> new ErrorResponse(Array(error)))
-          }
-
-        case Right(cardActivateResponse) =>
-          ToResponseMarshallable(StatusCodes.OK -> cardActivateResponse)
-      }
-  }
 }
 ```
 
 @[5-16](route handler)
 @[12](request handler)
-@[18-39](we'll come back to this)
+---
+
+## Our End of the World.. err beginning of the world 
+```scala
+private def activate(
+  userId: String, accountId: String, 
+  cardId: String, cardActivateRequest: CardActivateRequest
+): Future[ToResponseMarshallable] = {
+  cardHandler
+    .activate(userId, accountId, cardId, cardActivateRequest).map {
+      case Left(error) =>
+        error.code match {
+          case FailedActivationError.code => ToResponseMarshallable(
+            StatusCodes.BadRequest -> new ErrorResponse(Array(error.copy(code = ProviderError.code)))
+          )
+
+          case _ => ToResponseMarshallable(
+            StatusCodes.BadRequest -> new ErrorResponse(Array(error))
+          )
+        }
+
+      case Right(cardActivateResponse) => ToResponseMarshallable(
+        StatusCodes.OK -> cardActivateResponse
+      )
+    }
+}
+```
 
 ---
 
